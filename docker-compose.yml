@@ -1,0 +1,137 @@
+
+
+services:
+
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dev@12345
+      POSTGRES_DB: blogdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - backend
+    
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbit_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # post-service:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/post-service/Dockerfile
+  #   env_file:
+  #     - apps\post-service\.env
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     rabbitmq:
+  #       condition: service_healthy
+  #   ports:
+  #     - "3001:3001"
+
+  # comment-service:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/comment-service/Dockerfile
+  #   env_file:
+  #     - apps\comment-service\.env
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     rabbitmq:
+  #       condition: service_healthy
+  #   ports:
+  #     - "3002:3002"
+
+  # api-gateway:
+  #   build:
+  #     context: ./
+  #     dockerfile: apps/api-gateway/Dockerfile
+
+  #   env_file:
+  #     - apps\api-gateway\.env
+  #   depends_on:
+  #     post-service:
+  #       condition: service_started
+  #     comment-service:
+  #       condition: service_started
+  #   ports:
+  #     - "3000:3000"
+
+  # gateway:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     args:
+  #       SERVICE: gateway
+  #   container_name: gateway
+  #   depends_on:
+  #     - postgres
+  #   ports:
+  #     - "3000:3000"
+
+  # post:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     args:
+  #       SERVICE: post
+  #   container_name: post
+  #   depends_on:
+  #     - postgres
+  #   ports:
+  #     - "3001:3001"
+
+
+  # comment:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     args:
+  #       SERVICE: comment
+  #   container_name: comment
+  #   depends_on:
+  #     - postgres
+  #   ports:
+  #     - "3002:3002"
+
+volumes:
+  pgdata:
+  rabbit_data:
+
+networks:
+  backend:
+    driver: bridge

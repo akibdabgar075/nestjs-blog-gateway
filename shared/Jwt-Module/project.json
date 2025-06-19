@@ -1,0 +1,20 @@
+{
+  "name": "Jwt-Module",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "shared/Jwt-Module/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/shared/Jwt-Module",
+        "tsConfig": "shared/Jwt-Module/tsconfig.lib.json",
+        "packageJson": "shared/Jwt-Module/package.json",
+        "main": "shared/Jwt-Module/src/index.ts",
+        "assets": ["shared/Jwt-Module/*.md"]
+      }
+    }
+  }
+}

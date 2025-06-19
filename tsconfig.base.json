@@ -14,7 +14,13 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@workspace/Jwt-Module": ["shared/Jwt-Module/src/index.ts"],
+      "@workspace/config": ["shared/db/config/src/index.ts"],
+      "@workspace/db-config": ["shared/db/db-config/src/index.ts"],
+      "@workspace/dto": ["shared/dto/src/index.ts"],
+      "@workspace/shared": ["shared/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
