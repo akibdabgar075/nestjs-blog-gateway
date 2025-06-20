@@ -7,7 +7,7 @@ export class UpdatePostHandler implements ICommandHandler<UpdatePostCommand> {
   constructor(private readonly postService: PostService) {}
 
   async execute(command: UpdatePostCommand) {
-    const { id, data } = command;
-    return this.postService.update(id, data);
+    const { id, data, userId } = command;
+    return this.postService.update(id, data, userId);
   }
 }

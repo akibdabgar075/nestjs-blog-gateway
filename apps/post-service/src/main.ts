@@ -8,7 +8,6 @@ import { AppModule } from './app/app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   // const envFilePath = path.resolve(process.cwd(), `.env.post`);
-  // console.log(envFilePath, 'envFilePath');
 
   // dotenv.config({ path: envFilePath });
   const configService = app.get(ConfigService);

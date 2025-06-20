@@ -14,8 +14,6 @@ export class CommentService {
   ) {}
 
   create(createCommentDto: CreateCommentDto): Promise<Comment> {
-    console.log(createCommentDto, 'createCommentDto');
-
     const comment = this.commentRepository.create(createCommentDto);
     return this.commentRepository.save(comment);
   }

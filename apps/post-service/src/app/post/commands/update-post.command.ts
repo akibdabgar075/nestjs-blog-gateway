@@ -1,8 +1,9 @@
-import { Post } from '../entities/post.entity';
+import { CreatePostDto } from '@workspace/dto';
 
 export class UpdatePostCommand {
   constructor(
     public readonly id: number,
-    public readonly data: Partial<Post>
+    public readonly data: Partial<CreatePostDto>,
+    public readonly userId: number
   ) {}
 }

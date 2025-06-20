@@ -16,10 +16,10 @@ export class Comment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column('uuid')
+  @Column()
   postId: number;
 
-  @Column('uuid')
+  @Column()
   authorId: number;
 
   @Column('text')

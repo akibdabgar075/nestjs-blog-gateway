@@ -7,6 +7,7 @@ import { GetAllPostsQuery } from './queries/get-all-posts.query';
 import { UpdatePostCommand } from './commands/update-post.command';
 import { DeletePostCommand } from './commands/delete-post.command';
 import { GetPostsQuery } from './queries/get-post.query';
+import { CreatePostDto } from '@workspace/dto';
 
 // @Controller()
 // export class PostController {
@@ -62,11 +63,17 @@ export class PostController {
   }
 
   @MessagePattern('update_post')
-  update(@Payload() payload: { id: number; [key: string]: number }) {
-    const { id, ...data } = payload;
-    console.log(payload, 'payload');
+  update(
+    @Payload()
+    payload: {
+      id: number;
+      data: Partial<CreatePostDto>;
+      userId: number;
+    }
+  ) {
+    const { id, data, userId } = payload;
 
-    return this.commandBus.execute(new UpdatePostCommand(id, data));
+    return this.commandBus.execute(new UpdatePostCommand(id, data, userId));
   }
 
   @MessagePattern('delete_post')

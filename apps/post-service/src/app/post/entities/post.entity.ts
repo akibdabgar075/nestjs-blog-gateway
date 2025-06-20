@@ -21,6 +21,7 @@ export class Post {
   authorId: number;
 
   @Column({ length: 255 })
+  @Index()
   title: string;
 
   @Column('text')

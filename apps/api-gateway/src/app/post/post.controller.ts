@@ -6,8 +6,10 @@ import {
   Inject,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Post,
   Put,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
@@ -17,9 +19,10 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { lastValueFrom } from 'rxjs';
 import { PostWithCommentsDto } from './dto/getPostWithComents.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { AuthRequest } from '../interface/user-info.interface';
 
-@ApiTags('posts')
-@Controller('posts')
+@ApiTags('post')
+@Controller()
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('access-token')
 export class PostController {
@@ -28,34 +31,53 @@ export class PostController {
     @Inject('COMMENT_SERVICE') private readonly commentClient: ClientProxy
   ) {}
 
-  @Post()
-  createPost(@Body() createPostDto: CreatePostDto) {
-    return this.client.send('create_post', createPostDto);
+  @Post('create-post')
+  createPost(
+    @Body() createPostDto: CreatePostDto,
+    @Request() req: AuthRequest
+  ) {
+    const user = req.user;
+
+    const data = { ...createPostDto, authorId: user.userId };
+
+    return this.client.send('create_post', data);
   }
 
-  @Get()
+  @Get('get-all-post')
   getAllPosts() {
     return this.client.send('get_all_posts', {});
   }
 
-  @Get(':id')
-  getPost(@Param('id') id: string) {
+  @Get('get-post:id')
+  getPost(@Param('id') id: number) {
+    console.log(typeof id, 'typeoffffffffffffffffffffffffffffffffffff');
     return this.client.send('get_post', id);
   }
 
-  @Put(':id')
-  updatePost(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.client.send('update_post', { id, ...updatePostDto });
+  @Put('update-post:id')
+  updatePost(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updatePostDto: Partial<UpdatePostDto>,
+    @Request() req: AuthRequest
+  ) {
+    const user = req.user;
+    return this.client.send('update_post', {
+      id,
+      data: updatePostDto,
+      userId: user.userId,
+    });
   }
 
-  @Delete(':id')
-  deletePost(@Param('id') id: string) {
+  @Delete('delete-post/:id')
+  deletePost(@Param('id', ParseIntPipe) id: number) {
+    console.log(typeof id, 'typeoffffffffffffffffffffffffffffffffffff');
+
     return this.client.send('delete_post', id);
   }
 
-  @Get(':id')
+  @Get('get-posts-with-comments:id')
   async getPostWithComments(
-    @Param('id') id: string
+    @Param('id', ParseIntPipe) id: number
   ): Promise<PostWithCommentsDto | null> {
     const post = await lastValueFrom(this.client.send('get_post', id));
 
@@ -75,7 +97,7 @@ export class PostController {
     };
   }
 
-  @Get()
+  @Get('get-all-posts-with-comments')
   async getAllPostsWithComments(): Promise<PostWithCommentsDto[]> {
     // 1. Get all posts
     const posts = await lastValueFrom(this.client.send('get_all_posts', {}));

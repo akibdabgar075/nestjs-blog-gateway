@@ -22,13 +22,7 @@ export class CommentController {
 
   @Post()
   createComment(@Body() createCommentDto: CreateCommentDto) {
-    try {
-      console.log('createCommentDto', createCommentDto);
-
-      return this.client.send('create_comment', createCommentDto);
-    } catch (error) {
-      console.log(error, 'errorerrorerror');
-    }
+    return this.client.send('create_comment', createCommentDto);
   }
 
   @Get()

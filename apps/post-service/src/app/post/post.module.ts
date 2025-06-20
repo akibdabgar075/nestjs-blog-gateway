@@ -11,6 +11,7 @@ import { GetAllPostsHandler } from './queries/handlers/get-all-posts.handler';
 import { UpdatePostHandler } from './commands/handlers/update-post.handler';
 import { DeletePostHandler } from './commands/handlers/delete-post.handler';
 import { GetPostsHandler } from './queries/handlers/get-post.handler';
+import { Tag } from './entities/tag.entity';
 
 const CommandHandlers = [
   CreatePostHandler,
@@ -20,7 +21,7 @@ const CommandHandlers = [
 const QueryHandlers = [GetAllPostsHandler, GetPostsHandler];
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Post]), CqrsModule],
+  imports: [TypeOrmModule.forFeature([Post, Tag]), CqrsModule],
   controllers: [PostController],
   providers: [PostService, ...CommandHandlers, ...QueryHandlers],
 })

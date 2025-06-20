@@ -15,7 +15,8 @@
     "docker:down": "docker-compose down",
     "start:all": "concurrently \"nx serve api-gateway\" \"nx serve post-service\" \"nx serve comment-service\" \"nx serve user-service\"",
     "build:all": "npm run build:gateway && npm run build:post && npm run build:comment && npm run build:user",
-    "build": "nx build"
+    "build": "nx build",
+    "start:debug": "nest start --debug --watch"
   },
   "private": true,
   "dependencies": {
@@ -32,6 +33,7 @@
     "amqp-connection-manager": "^4.1.14",
     "axios": "^1.6.0",
     "bcrypt": "^6.0.0",
+    "chardet": "^2.1.0",
     "class-validator": "^0.14.2",
     "dotenv": "^16.5.0",
     "morgan": "^1.10.0",

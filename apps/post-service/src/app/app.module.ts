@@ -25,7 +25,7 @@ import { Tag } from './post/entities/tag.entity';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [Post, Tag],
-        synchronize: true,
+        synchronize: false,
         logging: true,
       }),
     }),

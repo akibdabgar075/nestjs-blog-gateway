@@ -2,66 +2,149 @@ import {
   Injectable,
   NotFoundException,
   InternalServerErrorException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { CreatePostMapper } from './mappers/post.mapper';
+import { CreatePostDto } from '@workspace/dto';
+import { Tag } from './entities/tag.entity';
 
 @Injectable()
 export class PostService {
   constructor(
     @InjectRepository(Post)
-    private readonly postRepo: Repository<Post>
+    private readonly postRepo: Repository<Post>,
+    @InjectRepository(Tag)
+    private readonly tagRepo: Repository<Tag>
   ) {}
 
-  async create(data: Partial<Post>) {
+  async create(data: CreatePostDto) {
     try {
-      const postEntity = CreatePostMapper.toEntity(data);
-      console.log(postEntity, 'postEntity');
+      const post = new Post();
+      post.title = data.title?.trim();
+      post.content = data.content ?? '';
+      post.published = data.published ?? false;
+      post.authorId = data.authorId ?? null;
 
-      await this.postRepo.save(postEntity);
-      const postDto = CreatePostMapper.toDto(postEntity);
-      return postDto;
+      const tagNames =
+        data.tags?.map((tag) => tag.name.trim().toLowerCase()) || [];
+
+      const existingTags = await this.tagRepo.find({
+        where: tagNames.map((name) => ({ name })),
+      });
+
+      const existingTagNames = existingTags.map((tag) => tag.name);
+
+      const newTags = tagNames
+        .filter((name) => !existingTagNames.includes(name))
+        .map((name) => {
+          const tag = new Tag();
+          tag.name = name;
+          return tag;
+        });
+
+      if (newTags?.length > 0) {
+        await this.tagRepo.save(newTags);
+      }
+
+      post.tags = [...existingTags, ...newTags];
+
+      const savedPost = await this.postRepo.save(post);
+
+      return CreatePostMapper.toDto(savedPost);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw new InternalServerErrorException('Failed to create post');
     }
   }
 
   async findAll() {
     try {
-      return await this.postRepo.find({ select: ['id', 'title', 'content'] });
+      console.log('findAll');
+
+      const posts = await this.postRepo.find({
+        select: ['id', 'title', 'content', 'authorId'],
+      });
+
+      return posts?.map(CreatePostMapper.toDto);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw new InternalServerErrorException('Failed to fetch posts');
     }
   }
 
   async findOne(id: number) {
     try {
-      console.log('post service cal');
-
-      const post = await this.postRepo.findOneBy({ id });
+      const post = await this.postRepo.findOne({
+        select: ['id', 'title', 'content', 'authorId'],
+        where: { id },
+      });
       if (!post) throw new NotFoundException('Post not found');
-      return post;
+      return CreatePostMapper.toDto(post);
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
       throw new InternalServerErrorException('Failed to fetch post');
     }
   }
 
-  async update(id: number, data: Partial<Post>) {
+  async update(
+    id: number,
+    data: Partial<CreatePostDto>,
+    currentUserId: number
+  ) {
     try {
-      const result = await this.postRepo.update(id, data);
-      if (!result.affected) throw new NotFoundException('Post not found');
+      const post = await this.postRepo.findOne({
+        where: { id },
+        relations: ['tags'],
+      });
 
-      const updated = await this.postRepo.findOneBy({ id });
-      if (!updated) throw new NotFoundException('Post not found after update');
+      if (!post) throw new NotFoundException('Post not found');
 
-      return updated;
+      if (post.authorId !== currentUserId) {
+        throw new ForbiddenException('You are not allowed to update this post');
+      }
+
+      CreatePostMapper.updateEntity(post, data);
+
+      if (data?.tags) {
+        const tagNames = data.tags.map((t) => t.name.trim().toLowerCase());
+
+        const existingTags = await this.tagRepo.find({
+          where: tagNames.map((name) => ({ name })),
+        });
+
+        const existingTagNames = existingTags.map((t) => t.name);
+
+        const newTags = tagNames
+          .filter((name) => !existingTagNames.includes(name))
+          .map((name) => {
+            const tag = new Tag();
+            tag.name = name;
+            return tag;
+          });
+
+        if (newTags.length) await this.tagRepo.save(newTags);
+
+        post.tags = [...existingTags, ...newTags];
+      }
+
+      await this.postRepo.save(post);
+
+      const updated = await this.postRepo.findOne({
+        where: { id },
+        relations: ['tags'],
+      });
+
+      return CreatePostMapper.toDto(updated);
     } catch (error) {
-      if (error instanceof NotFoundException) throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException
+      )
+        throw error;
+      console.error(error);
       throw new InternalServerErrorException('Failed to update post');
     }
   }
@@ -69,6 +152,8 @@ export class PostService {
   async remove(id: number) {
     try {
       const result = await this.postRepo.delete(id);
+      console.log(result, 'result');
+
       if (!result.affected) throw new NotFoundException('Post not found');
       return { deleted: true };
     } catch (error) {

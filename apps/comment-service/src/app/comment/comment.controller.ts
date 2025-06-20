@@ -10,8 +10,6 @@ export class CommentController {
 
   @MessagePattern('create_comment')
   create(@Payload() createCommentDto: CreateCommentDto) {
-    console.log('');
-
     return this.commentService.create(createCommentDto);
   }
 
