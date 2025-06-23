@@ -48,13 +48,12 @@ export class PostController {
     return this.client.send('get_all_posts', {});
   }
 
-  @Get('get-post:id')
-  getPost(@Param('id') id: number) {
-    console.log(typeof id, 'typeoffffffffffffffffffffffffffffffffffff');
+  @Get('get-post/:id')
+  getPost(@Param('id', ParseIntPipe) id: number) {
     return this.client.send('get_post', id);
   }
 
-  @Put('update-post:id')
+  @Put('update-post/:id')
   updatePost(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePostDto: Partial<UpdatePostDto>,
@@ -75,7 +74,7 @@ export class PostController {
     return this.client.send('delete_post', id);
   }
 
-  @Get('get-posts-with-comments:id')
+  @Get('get-posts-with-comments/:id')
   async getPostWithComments(
     @Param('id', ParseIntPipe) id: number
   ): Promise<PostWithCommentsDto | null> {

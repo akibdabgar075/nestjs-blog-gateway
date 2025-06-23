@@ -7,8 +7,6 @@ export class GetAllPostsHandler implements IQueryHandler<GetAllPostsQuery> {
   constructor(private readonly postService: PostService) {}
 
   async execute(query: GetAllPostsQuery) {
-    console.log('GetAllPostsQuery');
-
     return this.postService.findAll();
   }
 }

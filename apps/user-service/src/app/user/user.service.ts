@@ -14,6 +14,7 @@ import { CreateUserInfo } from './interfaces/create-user.interface';
 import { LoginInfo } from './interfaces/login.interface';
 import { JwtService } from '@nestjs/jwt';
 import { UserMapper } from './mappers/login-response.mapper';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class UserService {
@@ -37,7 +38,7 @@ export class UserService {
       const getUser = await this.userRepo.findOneBy({ email: dto.email });
 
       if (!getUser) {
-        throw new UnauthorizedException('Invalid email');
+        throw new RpcException('Invalid email');
       }
 
       const isMatchPassword = await bcrypt.compare(

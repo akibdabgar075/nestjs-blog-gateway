@@ -23,7 +23,7 @@ export class Comment {
   authorId: number;
 
   @Column('text')
-  content: string;
+  message: string;
 
   @Column({ default: false })
   isView: boolean;

@@ -3,6 +3,7 @@ import {
   NotFoundException,
   InternalServerErrorException,
   ForbiddenException,
+  Inject,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,6 +11,8 @@ import { Post } from './entities/post.entity';
 import { CreatePostMapper } from './mappers/post.mapper';
 import { CreatePostDto } from '@workspace/dto';
 import { Tag } from './entities/tag.entity';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class PostService {
@@ -17,7 +20,8 @@ export class PostService {
     @InjectRepository(Post)
     private readonly postRepo: Repository<Post>,
     @InjectRepository(Tag)
-    private readonly tagRepo: Repository<Tag>
+    private readonly tagRepo: Repository<Tag>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) {}
 
   async create(data: CreatePostDto) {
@@ -62,13 +66,28 @@ export class PostService {
 
   async findAll() {
     try {
-      console.log('findAll');
+      const cacheKey = 'posts:all';
 
+      const cached = await this.cacheManager.get<CreatePostDto[]>(cacheKey);
+      console.log(cached, 'cachedcachedcachedcached');
+
+      if (cached) {
+        return cached; // cached is already PostDto[]
+        console.log(cached, 'cachedcached');
+      }
+
+      // fetch posts from DB & map
       const posts = await this.postRepo.find({
         select: ['id', 'title', 'content', 'authorId'],
       });
 
-      return posts?.map(CreatePostMapper.toDto);
+      const mapped: CreatePostDto[] = posts?.map(CreatePostMapper.toDto);
+
+      await this.cacheManager.set(cacheKey, mapped, 300);
+      const cached1 = await this.cacheManager.get<CreatePostDto[]>(cacheKey);
+      console.log(cached1, 'cached1cached1cached1');
+
+      return mapped;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException('Failed to fetch posts');
@@ -151,8 +170,7 @@ export class PostService {
 
   async remove(id: number) {
     try {
-      const result = await this.postRepo.delete(id);
-      console.log(result, 'result');
+      const result = await this.postRepo.softDelete(id);
 
       if (!result.affected) throw new NotFoundException('Post not found');
       return { deleted: true };

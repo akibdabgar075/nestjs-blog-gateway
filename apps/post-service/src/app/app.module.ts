@@ -7,13 +7,14 @@ import { PostModule } from './post/post.module';
 import { SharedModule } from '@workspace/shared';
 import { DbConfigModule } from '@workspace/db-config';
 import { Tag } from './post/entities/tag.entity';
+import { RedisModule } from 'shared/src/lib/redis/redis.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     // DbConfigModule.register('post'),
     SharedModule.register(),
-
+    RedisModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

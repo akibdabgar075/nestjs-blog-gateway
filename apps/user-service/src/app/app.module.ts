@@ -4,13 +4,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '@workspace/shared';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
+import { RedisModule } from 'shared/src/lib/redis/redis.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     // DbConfigModule.register('post'),
     SharedModule.register(),
-
+    RedisModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

@@ -3,6 +3,7 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { RedisModule } from './redis/redis.module';
 @Global()
 @Module({})
 export class SharedModule {
@@ -11,6 +12,7 @@ export class SharedModule {
       module: SharedModule,
       imports: [
         ConfigModule,
+        RedisModule,
         ClientsModule.registerAsync([
           {
             name: 'POST_SERVICE',
@@ -79,7 +81,7 @@ export class SharedModule {
           },
         ]),
       ],
-      exports: [ClientsModule],
+      exports: [ClientsModule, RedisModule],
     };
   }
 }

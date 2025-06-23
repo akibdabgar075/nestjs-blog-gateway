@@ -5,9 +5,11 @@ import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app/app.module';
 
 import morgan from 'morgan';
+import { AllExceptionsFilter } from './app/global-exception/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   const configService = app.get(ConfigService);
   // Swagger Setup
   const config = new DocumentBuilder()
@@ -25,6 +27,7 @@ async function bootstrap() {
       'access-token'
     )
     .build();
+  app.useGlobalFilters(new AllExceptionsFilter());
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 

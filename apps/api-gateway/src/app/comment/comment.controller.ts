@@ -8,39 +8,54 @@ import {
   Get,
   Inject,
   Param,
+  ParseIntPipe,
   Post,
   Put,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { AuthRequest } from '../interface/user-info.interface';
 
 @ApiTags('comments')
-@Controller('comments')
+@Controller()
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth('access-token')
 export class CommentController {
   constructor(
     @Inject('COMMENT_SERVICE') private readonly client: ClientProxy
   ) {}
 
-  @Post()
-  createComment(@Body() createCommentDto: CreateCommentDto) {
-    return this.client.send('create_comment', createCommentDto);
+  @Post('create-comment')
+  createComment(
+    @Body() createCommentDto: CreateCommentDto,
+    @Request() req: AuthRequest
+  ) {
+    const user = req.user;
+    const data = { ...createCommentDto, authorId: user.userId };
+    return this.client.send('create_comment', data);
   }
 
-  @Get()
+  @Get('get-all-comments')
   getAllComments() {
     return this.client.send('find_all_comments', {});
   }
 
-  @Get(':id')
-  getCommentById(@Param('id') id: number) {
+  @Get('get-comment/:id')
+  getCommentById(@Param('id', ParseIntPipe) id: number) {
     return this.client.send('find_one_comment', id);
   }
-  @Put(':id')
-  updateComment(@Param('id') id: number, updateCommentDto: UpdateCommentDto) {
+  @Put('update-comment/:id')
+  updateComment(
+    @Param('id', ParseIntPipe) id: number,
+    updateCommentDto: UpdateCommentDto
+  ) {
     return this.client.send('update_comment', { id, updateCommentDto });
   }
 
-  @Delete(':id')
-  deleteComment(@Param('id') id: number) {
+  @Delete('delete-comment/:id')
+  deleteComment(@Param('id', ParseIntPipe) id: number) {
     return this.client.send('remove_comment', id);
   }
 }

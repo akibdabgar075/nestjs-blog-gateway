@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { ClientsModule } from '@nestjs/microservices';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CommentModule } from './comment/entities/comment.module';
+import { CommentModule } from './comment/comment.module';
 import { Comment } from './comment/entities/comment.entity';
-import { DbConfigModule } from '@workspace/db-config';
+// import { DbConfigModule } from '@workspace/db-config';
 import { SharedModule } from '@workspace/shared';
 @Module({
   imports: [
@@ -23,7 +22,7 @@ import { SharedModule } from '@workspace/shared';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [Comment],
-        synchronize: true,
+        synchronize: false,
         autoLoadEntities: true,
         logging: true,
       }),
